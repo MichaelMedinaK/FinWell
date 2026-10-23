@@ -3,12 +3,14 @@ import { toDateKey, today } from '@/domain/dates';
 import { TransactionForm } from '@/components/transactions/TransactionForm';
 import { TransactionList } from '@/components/transactions/TransactionList';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { requireCompleteUser } from '@/server/auth/session';
 import { listRecentTransactions } from '@/server/services/transaction-service';
 
 export const metadata: Metadata = { title: 'Movimientos' };
 
 export default async function TransactionsPage() {
-  const transactions = await listRecentTransactions();
+  const user = await requireCompleteUser();
+  const transactions = await listRecentTransactions(user.id);
 
   return (
     <div className="space-y-6">

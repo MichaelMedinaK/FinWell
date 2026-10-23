@@ -1,4 +1,5 @@
-const CACHE_NAME = 'finwell-v1';
+// v2: desde que hay cuentas de usuario ya no se guardan páginas en caché; la versión nueva borra las antiguas.
+const CACHE_NAME = 'finwell-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -15,25 +16,15 @@ async function cacheFirst(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  const cache = await caches.open(CACHE_NAME);
-  cache.put(request, response.clone());
+  if (response.ok) {
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, response.clone());
+  }
   return response;
 }
 
-// Los datos financieros deben verse actualizados: se usa la red primero y la caché solo como respaldo offline.
-async function networkFirst(request) {
-  try {
-    const response = await fetch(request);
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, response.clone());
-    return response;
-  } catch (error) {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    throw error;
-  }
-}
-
+// Solo se cachean recursos estáticos públicos. Las páginas contienen datos financieros privados
+// de la sesión actual y no deben quedar guardadas en el dispositivo tras cerrar sesión.
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -41,7 +32,5 @@ self.addEventListener('fetch', (event) => {
 
   if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/icons/')) {
     event.respondWith(cacheFirst(request));
-  } else if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request));
   }
 });

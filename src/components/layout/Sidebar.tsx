@@ -3,15 +3,23 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/cn';
+import { LogoutButton } from '@/components/auth/LogoutButton';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { AlertCountBadge } from './AlertCountBadge';
 import { BrandLogo } from './BrandLogo';
 import { isActivePath, NAV_ITEMS } from './nav-items';
 
-export function Sidebar({ alertCount }: { alertCount: number }) {
+interface SidebarProps {
+  alertCount: number;
+  userName: string;
+  userEmail: string;
+}
+
+export function Sidebar({ alertCount, userName, userEmail }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white md:flex">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-surface md:flex">
       <div className="px-6 py-6">
         <BrandLogo />
       </div>
@@ -41,6 +49,15 @@ export function Sidebar({ alertCount }: { alertCount: number }) {
 
       <div className="m-3 rounded-xl bg-slate-50 p-4 text-xs text-slate-500">
         Próximamente: más módulos de bienestar personal.
+      </div>
+
+      <div className="border-t border-slate-200 p-3">
+        <div className="px-3 pb-2">
+          <p className="truncate text-sm font-semibold text-slate-900">{userName}</p>
+          <p className="truncate text-xs text-slate-500">{userEmail}</p>
+        </div>
+        <ThemeToggle />
+        <LogoutButton />
       </div>
     </aside>
   );

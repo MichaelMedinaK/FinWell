@@ -10,5 +10,6 @@ npm-debug.log*
 prisma/*.db
 prisma/*.db-journal
 
+.env
 .env*.local
 .DS_Store

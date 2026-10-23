@@ -1,12 +1,15 @@
 import { AlertsPanel } from '@/components/alerts/AlertsPanel';
 import { BalanceCard } from '@/components/dashboard/BalanceCard';
+import { DebtLoadIndicator } from '@/components/dashboard/DebtLoadIndicator';
 import { FlowChart } from '@/components/dashboard/FlowChart';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { requireCompleteUser } from '@/server/auth/session';
 import { getDashboardData } from '@/server/services/dashboard-service';
 
 export default async function DashboardPage() {
-  const { balance, summary, dailyFlows, monthlyFlows, debtAlerts } = await getDashboardData();
+  const user = await requireCompleteUser();
+  const { balance, summary, dailyFlows, monthlyFlows, debtAlerts, monthlyInstallments } = await getDashboardData(user.id);
 
   return (
     <div className="space-y-6">
@@ -23,6 +26,10 @@ export default async function DashboardPage() {
       </div>
 
       <AlertsPanel alerts={debtAlerts} showViewAllLink />
+
+      {user.monthlyIncome !== null && (
+        <DebtLoadIndicator monthlyIncome={user.monthlyIncome} monthlyInstallments={monthlyInstallments} />
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <FlowChart title="Últimos 7 días" flows={dailyFlows} granularity="day" />

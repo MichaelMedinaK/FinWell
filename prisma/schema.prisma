@@ -3,15 +3,60 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Supabase: DATABASE_URL usa el pooler (puerto 6543) porque Vercel abre muchas conexiones cortas;
+  // DIRECT_URL (puerto 5432) se usa solo para migraciones, que el pooler en modo transacción no soporta.
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// Los tipos se guardan como String porque SQLite no soporta enums nativos;
+// Los tipos se guardan como String (no enums) para poder agregar valores sin migrar la base;
 // los valores válidos se controlan en src/domain (DEBT_TYPES / TRANSACTION_TYPES).
+
+// User y Account siguen el formato que exige @auth/prisma-adapter (Auth.js).
+// passwordHash es nulo para quienes solo ingresan con Google; birthDate es nulo
+// hasta que el usuario de Google completa su perfil.
+model User {
+  id            String        @id @default(cuid())
+  name          String?
+  email         String        @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  birthDate     DateTime?
+  // Ingreso promedio declarado en el formulario de bienvenida; base para medir la carga de deudas.
+  monthlyIncome Float?
+  // Nulo mientras el usuario no termine (u omita) el formulario de bienvenida.
+  onboardedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  accounts      Account[]
+  debts         Debt[]
+  transactions  Transaction[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
 
 model Debt {
   id                    String   @id @default(cuid())
+  userId                String
   name                  String
   type                  String   @default("DEBT") // DEBT | CREDIT_CARD
   totalAmount           Float
@@ -20,18 +65,21 @@ model Debt {
   dueDate               DateTime
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([dueDate])
+  @@index([userId, dueDate])
 }
 
 model Transaction {
   id          String   @id @default(cuid())
+  userId      String
   type        String // INCOME | EXPENSE
   amount      Float
   description String
   category    String?
   date        DateTime
   createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([date])
+  @@index([userId, date])
 }

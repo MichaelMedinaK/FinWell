@@ -1,10 +1,7 @@
-import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { BottomNav } from '@/components/layout/BottomNav';
-import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Sidebar } from '@/components/layout/Sidebar';
 import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar';
-import { listDebtAlerts } from '@/server/services/debt-service';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -21,21 +18,15 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-// Todas las vistas leen datos vivos de la base local; no tiene sentido pre-renderizarlas en build.
+// Todas las vistas dependen de la sesión y de datos vivos; no tiene sentido pre-renderizarlas en build.
 export const dynamic = 'force-dynamic';
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const alertCount = (await listDebtAlerts()).length;
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es">
+    // suppressHydrationWarning: next-themes agrega la clase del tema en <html> antes de hidratar.
+    <html lang="es" suppressHydrationWarning>
       <body>
-        <Sidebar alertCount={alertCount} />
-        <div className="md:pl-64">
-          <MobileHeader />
-          <main className="mx-auto max-w-6xl px-4 pb-28 pt-5 md:px-8 md:pb-10 md:pt-8">{children}</main>
-        </div>
-        <BottomNav alertCount={alertCount} />
+        <ThemeProvider>{children}</ThemeProvider>
         <ServiceWorkerRegistrar />
       </body>
     </html>

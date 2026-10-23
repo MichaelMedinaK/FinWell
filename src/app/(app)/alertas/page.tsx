@@ -3,12 +3,14 @@ import Link from 'next/link';
 import { ALERT_WINDOW_DAYS } from '@/domain/debt';
 import { AlertsPanel } from '@/components/alerts/AlertsPanel';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { requireCompleteUser } from '@/server/auth/session';
 import { listDebtAlerts } from '@/server/services/debt-service';
 
 export const metadata: Metadata = { title: 'Alertas' };
 
 export default async function AlertsPage() {
-  const alerts = await listDebtAlerts();
+  const user = await requireCompleteUser();
+  const alerts = await listDebtAlerts(user.id);
 
   return (
     <div className="space-y-6">

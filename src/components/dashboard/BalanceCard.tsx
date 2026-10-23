@@ -5,8 +5,8 @@ export function BalanceCard({ balance, monthNet }: { balance: number; monthNet: 
   const isMonthPositive = monthNet >= 0;
 
   return (
-    <section className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-5 text-white shadow-lg shadow-emerald-900/10 md:p-6">
-      <div className="flex items-center gap-2 text-emerald-100">
+    <section className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 p-5 text-white shadow-lg shadow-emerald-900/10 md:p-6">
+      <div className="flex items-center gap-2 text-white/80">
         <Wallet className="h-5 w-5" aria-hidden />
         <h2 className="text-sm font-medium">Balance actual</h2>
       </div>

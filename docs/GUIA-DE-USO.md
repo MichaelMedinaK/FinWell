@@ -1,14 +1,34 @@
 # Guía de uso · FinWell
 
 > Documento vivo: actualízalo cada vez que se agregue o cambie una funcionalidad.
-> Última actualización: 23-10-2026 · Versión 0.1.0
+> Última actualización: 23-10-2026 · Versión 0.5.0
 
 ## 1. Primeros pasos
 
-1. Abre una terminal en la carpeta del proyecto.
-2. Solo la primera vez: `npm install`.
-3. Inicia la app con `npm run dev` y abre <http://localhost:3000>.
-4. (Opcional) Para probar con datos de ejemplo: `npm run db:seed`. ⚠️ Borra los datos existentes.
+1. Abre una terminal en la carpeta del proyecto y asegúrate de tener **Docker Desktop** abierto.
+2. Solo la primera vez: `npm install`, copia `.env.example` como `.env` y ejecuta `npx auth secret` (crea el secreto de sesiones en `.env.local`).
+3. Levanta la base de datos con `npm run db:up`, inicia la app con `npm run dev` y abre <http://localhost:3000>.
+4. (Opcional) Para probar con datos de ejemplo: `npm run db:seed` e ingresa con **demo@finwell.local / demo12345**. ⚠️ Reinicia los datos de esa cuenta demo.
+
+### Crear cuenta e iniciar sesión
+
+- **Registro** (`/registro`): nombre, correo, clave (mínimo 8 caracteres) y fecha de nacimiento (mínimo 13 años).
+- **Inicio de sesión** (`/login`): correo y clave, o el botón **Continuar con Google** (visible solo si está configurado, ver README).
+- La primera vez que entras con Google se te pedirá tu **fecha de nacimiento**.
+- Si tu correo ya está registrado con clave, ingresa con tu clave (no con Google).
+- **Cerrar sesión**: en la barra lateral (PC) o el ícono de salida en la parte superior (celular).
+- Cada cuenta ve solo sus propios movimientos y deudas.
+
+### Bienvenida (primer ingreso)
+
+Al crear tu cuenta verás un asistente rápido de 4 pasos:
+
+1. **Bienvenida**: un saludo y lo que FinWell hará por ti.
+2. **Ingreso mensual promedio**: opcional; si lo dejas vacío se guarda como "Prefiero no decirlo".
+3. **Tus deudas**: agrega hasta 10 deudas o tarjetas que ya conozcas (nombre, monto, cuotas, próximo pago e interés opcional). Si no tienes, continúa sin agregar.
+4. **Resumen**: revisa todo y pulsa **Ir a mi panel**.
+
+Puedes pulsar **Omitir por ahora** y cargar todo después desde las secciones normales. Si indicaste tu ingreso, el Resumen mostrará la tarjeta **Carga de deudas**: qué porcentaje de tu ingreso se va en cuotas (menos de 30 % saludable, 30–49 % moderada, 50 % o más alta).
 
 ### Instalar como app en el celular o PC
 
@@ -29,6 +49,10 @@ Luego, en el navegador, elige **"Instalar aplicación"** (PC) o **"Agregar a pan
 | PC / tablet | Barra lateral izquierda: Resumen · Movimientos · Deudas y tarjetas · Alertas |
 
 El número rojo sobre **Alertas** indica cuántos pagos requieren atención.
+
+### Tema claro / oscuro
+
+Toca el botón de sol / luna / monitor (en la barra lateral en PC, arriba a la derecha en el celular y en las pantallas de acceso) para pasar por **Claro → Oscuro → Sistema**. "Sistema" sigue la configuración de tu dispositivo. La elección queda guardada en ese navegador.
 
 ## 3. Resumen (Inicio)
 
@@ -92,7 +116,17 @@ En el archivo `.env` de la raíz del proyecto:
 |----------|---------|-----|
 | `NEXT_PUBLIC_CURRENCY` | `CLP`, `USD`, `EUR` | Moneda en que se muestran los montos |
 | `NEXT_PUBLIC_LOCALE` | `es-CL`, `es-MX`, `es-ES` | Formato de números y fechas |
-| `DATABASE_URL` | `file:./dev.db` | Ubicación de la base de datos SQLite |
+| `DATABASE_URL` | `postgresql://finwell:finwell@localhost:5433/finwell` | Conexión a PostgreSQL usada por la app |
+| `DIRECT_URL` | igual que `DATABASE_URL` en local | Conexión usada por las migraciones |
+
+`.env` tampoco se sube a git; usa `.env.example` como plantilla. En producción estas variables se configuran en Vercel (ver README).
+
+En `.env.local` (privado, no se sube a git):
+
+| Variable | Uso |
+|----------|-----|
+| `AUTH_SECRET` | Firma las sesiones (obligatoria) |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Habilitan el ingreso con Google (opcional) |
 
 Reinicia `npm run dev` después de cambiarlas.
 
@@ -100,10 +134,16 @@ Reinicia `npm run dev` después de cambiarlas.
 
 - No hay edición de deudas ni movimientos (solo crear y eliminar).
 - Las alertas se ven dentro de la app; no hay notificaciones push.
-- Los datos se guardan localmente en `prisma/dev.db`; para respaldarlos, copia ese archivo.
+- En local, los datos viven en el volumen Docker `finwell-db-data`; en producción, en Supabase.
+- Aún no hay recuperación de clave ni verificación de correo.
+- Sin conexión, la app no muestra datos (por privacidad no se guardan páginas en el dispositivo).
 
 ## 9. Historial de cambios
 
 | Fecha | Versión | Cambios |
 |-------|---------|---------|
 | 23-10-2026 | 0.1.0 | Versión inicial: resumen, movimientos, deudas/tarjetas, alertas y PWA. |
+| 23-10-2026 | 0.2.0 | Registro e inicio de sesión (correo/clave y Google), completar perfil, cerrar sesión y datos por usuario. Se eliminó la caché offline de páginas. |
+| 23-10-2026 | 0.3.0 | Asistente de bienvenida (ingreso mensual y deudas conocidas) y tarjeta "Carga de deudas" en el Resumen. |
+| 23-10-2026 | 0.4.0 | Tema claro, oscuro o según el sistema, con botón para cambiarlo. |
+| 23-10-2026 | 0.5.0 | Base de datos PostgreSQL (Docker en local, Supabase en producción) y despliegue en Vercel. |

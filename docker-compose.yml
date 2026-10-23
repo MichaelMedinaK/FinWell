@@ -1,0 +1,23 @@
+# PostgreSQL solo para desarrollo local. En producción se usa Supabase.
+# Se expone en 5433 para no chocar con otros PostgreSQL que usen el 5432.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: finwell-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: finwell
+      POSTGRES_PASSWORD: finwell
+      POSTGRES_DB: finwell
+    ports:
+      - '5433:5432'
+    volumes:
+      - finwell-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U finwell -d finwell']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  finwell-db-data:

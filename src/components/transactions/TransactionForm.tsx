@@ -24,7 +24,7 @@ export function TransactionForm({ defaultDate }: { defaultDate: string }) {
           {TRANSACTION_TYPES.map((type) => (
             <label key={type} className="cursor-pointer">
               <input type="radio" name="type" value={type} defaultChecked={type === 'EXPENSE'} className="peer sr-only" />
-              <span className="block rounded-lg py-2 text-center text-sm font-medium text-slate-600 transition peer-checked:bg-white peer-checked:text-slate-900 peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500">
+              <span className="block rounded-lg py-2 text-center text-sm font-medium text-slate-600 transition peer-checked:bg-surface peer-checked:text-slate-900 peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500">
                 {TRANSACTION_TYPE_LABELS[type]}
               </span>
             </label>

@@ -11,7 +11,7 @@ export function BottomNav({ alertCount }: { alertCount: number }) {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
       aria-label="Navegación principal"
     >
       <ul className="grid grid-cols-4">

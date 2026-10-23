@@ -6,12 +6,14 @@ import { DebtCard } from '@/components/debts/DebtCard';
 import { DebtForm } from '@/components/debts/DebtForm';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { requireCompleteUser } from '@/server/auth/session';
 import { listDebtsWithDueInfo } from '@/server/services/debt-service';
 
 export const metadata: Metadata = { title: 'Deudas y tarjetas' };
 
 export default async function DebtsPage() {
-  const debts = await listDebtsWithDueInfo();
+  const user = await requireCompleteUser();
+  const debts = await listDebtsWithDueInfo(user.id);
   const creditCardCount = debts.filter((debt) => debt.type === 'CREDIT_CARD').length;
 
   return (

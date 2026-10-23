@@ -43,6 +43,14 @@ export function startOfMonthOffset(date: Date, monthOffset: number): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + monthOffset, 1));
 }
 
+export function fullYearsBetween(from: Date, to: Date): number {
+  const years = to.getUTCFullYear() - from.getUTCFullYear();
+  const hasReachedAnniversary =
+    to.getUTCMonth() > from.getUTCMonth() ||
+    (to.getUTCMonth() === from.getUTCMonth() && to.getUTCDate() >= from.getUTCDate());
+  return hasReachedAnniversary ? years : years - 1;
+}
+
 export function daysBetween(from: Date, to: Date): number {
   return Math.round((to.getTime() - from.getTime()) / MS_PER_DAY);
 }
