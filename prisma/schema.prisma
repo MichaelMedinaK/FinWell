@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Los tipos se guardan como String porque SQLite no soporta enums nativos;
+// los valores válidos se controlan en src/domain (DEBT_TYPES / TRANSACTION_TYPES).
+
+model Debt {
+  id                    String   @id @default(cuid())
+  name                  String
+  type                  String   @default("DEBT") // DEBT | CREDIT_CARD
+  totalAmount           Float
+  remainingInstallments Int
+  interestRate          Float?
+  dueDate               DateTime
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([dueDate])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  type        String // INCOME | EXPENSE
+  amount      Float
+  description String
+  category    String?
+  date        DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([date])
+}
