@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2, LogIn } from 'lucide-react';
+import Link from 'next/link';
 import { useActionState } from 'react';
 import { INITIAL_FORM_STATE } from '@/lib/form-state';
 import { loginAction } from '@/server/actions/auth-actions';
@@ -22,6 +23,12 @@ export function LoginForm() {
       <FormField label="Clave" htmlFor="password" error={errors.password}>
         <input id="password" name="password" type="password" autoComplete="current-password" className="form-input" required aria-invalid={Boolean(errors.password)} />
       </FormField>
+
+      <div className="text-right">
+        <Link href="/olvide-mi-clave" className="text-sm font-semibold text-emerald-700 hover:underline">
+          ¿Olvidaste tu clave?
+        </Link>
+      </div>
 
       <FormStatusMessage state={state} />
 

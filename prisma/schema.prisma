@@ -33,6 +33,19 @@ model User {
   accounts      Account[]
   debts         Debt[]
   transactions  Transaction[]
+  resetTokens   PasswordResetToken[]
+}
+
+// Solo se guarda el hash del token: si la base se filtra, los enlaces enviados por correo no sirven.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Account {

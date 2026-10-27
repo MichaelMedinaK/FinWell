@@ -26,6 +26,26 @@ export interface ProfileInput {
   birthDate: Date;
 }
 
+export interface ForgotPasswordInput {
+  email: string;
+}
+
+export interface ResetPasswordInput {
+  token: string;
+  password: string;
+}
+
+function readPassword(values: RawFormValues, field: string): string {
+  const value = values[field];
+  return typeof value === 'string' ? value : '';
+}
+
+function validateNewPassword(password: string): string | undefined {
+  if (password.length < PASSWORD_MIN_LENGTH) return `Mínimo ${PASSWORD_MIN_LENGTH} caracteres.`;
+  if (password.length > PASSWORD_MAX_LENGTH) return `Máximo ${PASSWORD_MAX_LENGTH} caracteres.`;
+  return undefined;
+}
+
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
@@ -59,9 +79,9 @@ export function parseRegistrationInput(
   else if (name.length > NAME_MAX_LENGTH) errors.name = `Máximo ${NAME_MAX_LENGTH} caracteres.`;
 
   // La clave no se recorta: los espacios pueden ser parte intencional de ella.
-  const password = typeof values.password === 'string' ? values.password : '';
-  if (password.length < PASSWORD_MIN_LENGTH) errors.password = `Mínimo ${PASSWORD_MIN_LENGTH} caracteres.`;
-  else if (password.length > PASSWORD_MAX_LENGTH) errors.password = `Máximo ${PASSWORD_MAX_LENGTH} caracteres.`;
+  const password = readPassword(values, 'password');
+  const passwordError = validateNewPassword(password);
+  if (passwordError) errors.password = passwordError;
 
   const birthDate = parseDateOnly(readText(values, 'birthDate'));
   errors.birthDate = validateBirthDate(birthDate, referenceDay);
@@ -79,12 +99,37 @@ export function parseLoginInput(values: RawFormValues): ValidationResult<LoginIn
   const email = normalizeEmail(readText(values, 'email'));
   errors.email = validateEmail(email);
 
-  const password = typeof values.password === 'string' ? values.password : '';
+  const password = readPassword(values, 'password');
   if (password === '') errors.password = 'Ingresa tu clave.';
 
   const definedErrors = withoutEmptyErrors(errors);
   if (Object.keys(definedErrors).length > 0) return { success: false, errors: definedErrors };
   return { success: true, data: { email, password } };
+}
+
+export function parseForgotPasswordInput(values: RawFormValues): ValidationResult<ForgotPasswordInput> {
+  const email = normalizeEmail(readText(values, 'email'));
+  const emailError = validateEmail(email);
+  if (emailError) return { success: false, errors: { email: emailError } };
+  return { success: true, data: { email } };
+}
+
+export function parseResetPasswordInput(values: RawFormValues): ValidationResult<ResetPasswordInput> {
+  const errors: FieldErrors<keyof ResetPasswordInput | 'confirmPassword'> = {};
+
+  const token = readText(values, 'token');
+  if (token === '') errors.token = 'El enlace no es válido. Solicita uno nuevo.';
+
+  const password = readPassword(values, 'password');
+  errors.password = validateNewPassword(password);
+
+  if (!errors.password && password !== readPassword(values, 'confirmPassword')) {
+    errors.confirmPassword = 'Las claves no coinciden.';
+  }
+
+  const definedErrors = withoutEmptyErrors(errors);
+  if (Object.keys(definedErrors).length > 0) return { success: false, errors: definedErrors };
+  return { success: true, data: { token, password } };
 }
 
 export function parseProfileInput(values: RawFormValues, referenceDay: Date = today()): ValidationResult<ProfileInput> {

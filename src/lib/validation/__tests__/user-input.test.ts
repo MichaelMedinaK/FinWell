@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { fullYearsBetween } from '@/domain/dates';
-import { parseLoginInput, parseProfileInput, parseRegistrationInput } from '../user-input';
+import {
+  parseForgotPasswordInput,
+  parseLoginInput,
+  parseProfileInput,
+  parseRegistrationInput,
+  parseResetPasswordInput,
+} from '../user-input';
 
 const REFERENCE_DAY = new Date('2026-10-23T00:00:00.000Z');
 
@@ -76,5 +82,44 @@ describe('fullYearsBetween', () => {
   it('counts a year only after the anniversary', () => {
     expect(fullYearsBetween(new Date('2000-10-24T00:00:00Z'), REFERENCE_DAY)).toBe(25);
     expect(fullYearsBetween(new Date('2000-10-23T00:00:00Z'), REFERENCE_DAY)).toBe(26);
+  });
+});
+
+describe('parseForgotPasswordInput', () => {
+  it('normalizes the email', () => {
+    expect(parseForgotPasswordInput({ email: ' Ana@Gmail.com ' })).toEqual({ success: true, data: { email: 'ana@gmail.com' } });
+  });
+
+  it('rejects an invalid email', () => {
+    expect(parseForgotPasswordInput({ email: 'no-es-correo' })).toEqual({
+      success: false,
+      errors: { email: 'Ingresa un correo válido.' },
+    });
+  });
+});
+
+describe('parseResetPasswordInput', () => {
+  const validValues = { token: 'abc123', password: 'nueva-clave-1', confirmPassword: 'nueva-clave-1' };
+
+  it('returns the token and password for valid input', () => {
+    expect(parseResetPasswordInput(validValues)).toEqual({
+      success: true,
+      data: { token: 'abc123', password: 'nueva-clave-1' },
+    });
+  });
+
+  it('rejects a short password', () => {
+    const result = parseResetPasswordInput({ ...validValues, password: 'corta', confirmPassword: 'corta' });
+    expect(result).toEqual({ success: false, errors: { password: 'Mínimo 8 caracteres.' } });
+  });
+
+  it('rejects mismatched confirmation', () => {
+    const result = parseResetPasswordInput({ ...validValues, confirmPassword: 'otra-clave-99' });
+    expect(result).toEqual({ success: false, errors: { confirmPassword: 'Las claves no coinciden.' } });
+  });
+
+  it('rejects a missing token', () => {
+    const result = parseResetPasswordInput({ ...validValues, token: '' });
+    expect(result.success).toBe(false);
   });
 });

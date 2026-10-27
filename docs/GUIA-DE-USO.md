@@ -1,7 +1,7 @@
 # Guía de uso · FinWell
 
 > Documento vivo: actualízalo cada vez que se agregue o cambie una funcionalidad.
-> Última actualización: 23-10-2026 · Versión 0.5.0
+> Última actualización: 27-10-2026 · Versión 0.6.0
 
 ## 1. Primeros pasos
 
@@ -127,15 +127,25 @@ En `.env.local` (privado, no se sube a git):
 |----------|-----|
 | `AUTH_SECRET` | Firma las sesiones (obligatoria) |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Habilitan el ingreso con Google (opcional) |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | Envían el correo de recuperación de clave (contraseña de aplicación de Google) |
+| `APP_URL` | URL pública para el enlace del correo (opcional; en Vercel se detecta) |
 
-Reinicia `npm run dev` después de cambiarlas.
+Reinicia `npm run dev` después de cambiarlas. Sin las variables de Gmail, en desarrollo el enlace de recuperación se imprime en la consola del servidor.
+
+### Recuperar la clave
+
+1. En **Iniciar sesión** pulsa **¿Olvidaste tu clave?** e ingresa tu correo.
+2. Recibirás un enlace válido por 60 minutos y de un solo uso (siempre se muestra el mismo aviso, exista o no el correo).
+3. Elige la clave nueva; luego inicia sesión.
+
+Si el servidor falla al iniciar sesión, la app muestra "No pudimos conectar con el servidor" en vez de "Correo o clave incorrectos".
 
 ## 8. Limitaciones conocidas y próximas mejoras
 
 - No hay edición de deudas ni movimientos (solo crear y eliminar).
 - Las alertas se ven dentro de la app; no hay notificaciones push.
 - En local, los datos viven en el volumen Docker `finwell-db-data`; en producción, en Supabase.
-- Aún no hay recuperación de clave ni verificación de correo.
+- Aún no hay verificación de correo.
 - Sin conexión, la app no muestra datos (por privacidad no se guardan páginas en el dispositivo).
 
 ## 9. Historial de cambios
@@ -147,3 +157,4 @@ Reinicia `npm run dev` después de cambiarlas.
 | 23-10-2026 | 0.3.0 | Asistente de bienvenida (ingreso mensual y deudas conocidas) y tarjeta "Carga de deudas" en el Resumen. |
 | 23-10-2026 | 0.4.0 | Tema claro, oscuro o según el sistema, con botón para cambiarlo. |
 | 23-10-2026 | 0.5.0 | Base de datos PostgreSQL (Docker en local, Supabase en producción) y despliegue en Vercel. |
+| 27-10-2026 | 0.6.0 | Recuperación de clave por correo (Gmail) y mensajes de error de inicio de sesión que distinguen clave incorrecta de falla del servidor. |

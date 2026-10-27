@@ -13,16 +13,22 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 };
 const GENERIC_OAUTH_ERROR = 'No pudimos iniciar sesión con Google. Intenta nuevamente.';
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; reset?: string }> }) {
   if (await getCurrentUser()) redirect('/');
 
-  const { error } = await searchParams;
+  const { error, reset } = await searchParams;
   const oauthError = error ? (OAUTH_ERROR_MESSAGES[error] ?? GENERIC_OAUTH_ERROR) : null;
 
   return (
     <div className="card space-y-1 p-6 md:p-6">
       <h1 className="text-xl font-bold text-slate-900">Inicia sesión</h1>
       <p className="pb-3 text-sm text-slate-500">Accede a tu bienestar financiero.</p>
+
+      {reset === 'ok' && (
+        <p role="status" className="mb-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          Tu clave se actualizó. Ya puedes iniciar sesión.
+        </p>
+      )}
 
       {oauthError && (
         <p role="alert" className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">

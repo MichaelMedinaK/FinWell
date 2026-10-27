@@ -62,6 +62,8 @@ La moneda y el locale se configuran en `.env` (`NEXT_PUBLIC_CURRENCY`, `NEXT_PUB
 - Registro con correo, nombre, clave (mín. 8 caracteres) y fecha de nacimiento (mín. 13 años).
 - Inicio de sesión con correo y clave (bcrypt) o con Google. Sesiones JWT firmadas con `AUTH_SECRET`.
 - Cada usuario ve solo sus propios movimientos y deudas.
+- Recuperación de clave: `/olvide-mi-clave` envía por Gmail (nodemailer) un enlace de un solo uso, válido 60 min (solo se guarda su hash). Variables: `GMAIL_USER`, `GMAIL_APP_PASSWORD` (contraseña de aplicación de Google) y opcional `APP_URL`. Sin ellas, en local el enlace se imprime en consola.
+- Si el login falla por un error interno (BD caída, `AUTH_SECRET` ausente) se muestra un mensaje distinto y la causa queda en los logs del servidor.
 
 ### Habilitar "Continuar con Google"
 

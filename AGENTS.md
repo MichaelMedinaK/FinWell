@@ -41,7 +41,8 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y, si toca
 - Carga de deudas (`src/domain/financial-health.ts`): cuotas mensuales / ingreso. Umbrales: < 30 % saludable, < 50 % moderada, resto alta. Cambiar solo ahí.
 - Rutas públicas en `src/app/(auth)/`. Usuarios sin `birthDate` (Google) se redirigen a `/completar-perfil`.
 - No activar `allowDangerousEmailAccountLinking`: evita el secuestro de cuentas por correo.
-- Secretos (`AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`) solo en `.env.local`; nunca en `.env` ni en el código.
+- Secretos (`AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `GMAIL_APP_PASSWORD`) solo en `.env.local`; nunca en `.env` ni en el código.
+- Recuperación de clave: token aleatorio de un solo uso, solo se guarda su hash (`PasswordResetToken`, 60 min); `forgot` responde igual exista o no el correo. `signInWithPassword` distingue `CredentialsSignin` (clave incorrecta) de otros `AuthError` (falla del servicio).
 - El service worker no cachea páginas HTML para no dejar datos privados en el dispositivo.
 
 ## Convenciones clave

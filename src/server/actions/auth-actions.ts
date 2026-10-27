@@ -8,11 +8,13 @@ import type { FormState } from '@/lib/form-state';
 import { parseLoginInput, parseProfileInput, parseRegistrationInput } from '@/lib/validation/user-input';
 import { hashPassword } from '@/server/auth/password';
 import { LOGIN_PATH, requireUserId } from '@/server/auth/session';
+import { classifySignInError } from '@/server/auth/sign-in-error';
 import { isPersistenceError, isUniqueConstraintError, PERSISTENCE_ERROR_MESSAGE } from '@/server/persistence-errors';
 import { createPasswordUser, findUserByEmail, updateBirthDate } from '@/server/services/user-service';
 
 const HOME_PATH = '/';
 const INVALID_CREDENTIALS_MESSAGE = 'Correo o clave incorrectos.';
+const SERVICE_UNAVAILABLE_MESSAGE = 'No pudimos conectar con el servidor. Intenta nuevamente en unos minutos.';
 const EMAIL_TAKEN_ERROR = 'Este correo ya está registrado. Inicia sesión.';
 
 /*
@@ -23,7 +25,13 @@ async function signInWithPassword(email: string, password: string): Promise<Form
   try {
     await signIn('credentials', { email, password, redirectTo: HOME_PATH });
   } catch (error) {
-    if (error instanceof AuthError) return { status: 'error', message: INVALID_CREDENTIALS_MESSAGE };
+    if (error instanceof AuthError) {
+      if (classifySignInError(error) === 'INVALID_CREDENTIALS') {
+        return { status: 'error', message: INVALID_CREDENTIALS_MESSAGE };
+      }
+      console.error('[FinWell] Falla interna al iniciar sesión:', error.cause ?? error);
+      return { status: 'error', message: SERVICE_UNAVAILABLE_MESSAGE };
+    }
     throw error;
   }
   return { status: 'success' };
