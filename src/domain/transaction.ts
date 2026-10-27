@@ -12,6 +12,31 @@ export function isTransactionType(value: unknown): value is TransactionType {
   return typeof value === 'string' && (TRANSACTION_TYPES as readonly string[]).includes(value);
 }
 
+export const TRANSACTION_SUBTYPES = {
+  EXPENSE: ['DAILY', 'DEBT_PAYMENT', 'FIXED', 'OTHER'],
+  INCOME: ['FIXED', 'VARIABLE', 'OTHER'],
+} as const satisfies Record<TransactionType, readonly string[]>;
+
+export const TRANSACTION_SUBTYPE_LABELS: Record<TransactionType, Record<string, string>> = {
+  EXPENSE: {
+    DAILY: 'Gasto diario',
+    DEBT_PAYMENT: 'Pago de deuda agendada',
+    FIXED: 'Gasto fijo (luz, agua, arriendo…)',
+    OTHER: 'Otro gasto',
+  },
+  INCOME: {
+    FIXED: 'Ingreso fijo (sueldo)',
+    VARIABLE: 'Ingreso informal / variable',
+    OTHER: 'Otro ingreso',
+  },
+};
+
+export const DEBT_PAYMENT_SUBTYPE = 'DEBT_PAYMENT';
+
+export function isSubtypeOf(type: TransactionType, subtype: string): boolean {
+  return (TRANSACTION_SUBTYPES[type] as readonly string[]).includes(subtype);
+}
+
 export interface TransactionRecord {
   type: string;
   amount: number;

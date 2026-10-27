@@ -1,74 +1,80 @@
-import { parseDebtInput, type DebtInput } from './debt-input';
-import { parseNumber, readText, type RawFormValues, type ValidationResult } from './form-values';
+import { parseDebtGoalInput, type DebtGoalInput } from './debt-goal-input';
+import { parseFixedExpenses, type FixedExpenseInput } from './fixed-expense-input';
+import { readText, type RawFormValues, type ValidationResult } from './form-values';
+import { parseIncomeSourceInput, type IncomeSourceInput } from './income-source-input';
 
-export const MAX_ONBOARDING_DEBTS = 10;
-const MAX_MONTHLY_INCOME = 1_000_000_000_000;
+export const MAX_ONBOARDING_INCOME_SOURCES = 10;
 
-export type DebtDraft = Record<string, string>;
+export type IncomeSourceDraft = Record<string, string>;
 
 export interface OnboardingInput {
-  monthlyIncome: number | null;
-  debts: DebtInput[];
+  incomeSources: IncomeSourceInput[];
+  debtGoal: DebtGoalInput | null;
+  fixedExpenses: FixedExpenseInput[];
 }
 
-export type MonthlyIncomeResult = { success: true; data: number | null } | { success: false; error: string };
-
-// El ingreso es opcional: el usuario puede preferir no declararlo y aun así usar la app.
-export function parseMonthlyIncome(text: string): MonthlyIncomeResult {
-  const trimmed = text.trim();
-  if (trimmed === '') return { success: true, data: null };
-
-  const amount = parseNumber(trimmed);
-  if (amount === null || amount <= 0 || amount > MAX_MONTHLY_INCOME) {
-    return { success: false, error: 'Ingresa un monto mayor a 0.' };
-  }
-  return { success: true, data: amount };
-}
-
-function readDebtDrafts(serializedDebts: string): unknown[] | null {
-  if (serializedDebts === '') return [];
+function readJson(serialized: string): unknown | null {
+  if (serialized === '') return null;
   try {
-    const parsed: unknown = JSON.parse(serializedDebts);
-    return Array.isArray(parsed) ? parsed : null;
+    return JSON.parse(serialized);
   } catch (error) {
-    if (error instanceof SyntaxError) return null;
+    if (error instanceof SyntaxError) return undefined;
     throw error;
   }
 }
 
-function isDebtDraft(value: unknown): value is DebtDraft {
+function isRecord(value: unknown): value is Record<string, string> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function parseOnboardingInput(values: RawFormValues): ValidationResult<OnboardingInput> {
-  const incomeResult = parseMonthlyIncome(readText(values, 'monthlyIncome'));
-  const drafts = readDebtDrafts(readText(values, 'debts'));
-
-  const debts: DebtInput[] = [];
-  let debtsError: string | undefined;
-
-  if (drafts === null || drafts.length > MAX_ONBOARDING_DEBTS) {
-    debtsError = `Puedes agregar hasta ${MAX_ONBOARDING_DEBTS} deudas.`;
-  } else {
-    for (const draft of drafts) {
-      const debtResult = isDebtDraft(draft) ? parseDebtInput(draft) : null;
-      if (!debtResult?.success) {
-        debtsError = 'Una de las deudas tiene datos inválidos. Revísala e intenta de nuevo.';
-        break;
-      }
-      debts.push(debtResult.data);
-    }
+function parseIncomeSources(serialized: string): { items: IncomeSourceInput[]; error?: string } {
+  const parsed = readJson(serialized);
+  if (parsed === null) return { items: [] };
+  if (!Array.isArray(parsed) || parsed.length > MAX_ONBOARDING_INCOME_SOURCES) {
+    return { items: [], error: `Puedes agregar hasta ${MAX_ONBOARDING_INCOME_SOURCES} fuentes de ingreso.` };
   }
 
-  if (!incomeResult.success || debtsError) {
+  const items: IncomeSourceInput[] = [];
+  for (const draft of parsed) {
+    const result = isRecord(draft) ? parseIncomeSourceInput(draft) : null;
+    if (!result?.success) {
+      return { items: [], error: 'Una de las fuentes de ingreso tiene datos inválidos. Revísala e intenta de nuevo.' };
+    }
+    items.push(result.data);
+  }
+  return { items };
+}
+
+function parseExpenses(serialized: string): { items: FixedExpenseInput[]; error?: string } {
+  const parsed = readJson(serialized);
+  if (parsed === null) return { items: [] };
+
+  const result = isRecord(parsed) ? parseFixedExpenses(parsed) : null;
+  if (!result?.success) return { items: [], error: 'Alguno de los gastos fijos tiene un monto inválido.' };
+  return { items: result.data };
+}
+
+export function parseOnboardingInput(values: RawFormValues): ValidationResult<OnboardingInput> {
+  const incomes = parseIncomeSources(readText(values, 'incomeSources'));
+  const debtGoal = parseDebtGoalInput({
+    estimatedTotal: readText(values, 'debtEstimatedTotal'),
+    payoffMonths: readText(values, 'debtPayoffMonths'),
+  });
+  const expenses = parseExpenses(readText(values, 'fixedExpenses'));
+
+  if (incomes.error || !debtGoal.success || expenses.error) {
     return {
       success: false,
       errors: {
-        ...(incomeResult.success ? {} : { monthlyIncome: incomeResult.error }),
-        ...(debtsError ? { debts: debtsError } : {}),
+        ...(incomes.error ? { incomeSources: incomes.error } : {}),
+        ...(debtGoal.success ? {} : { debtGoal: 'La deuda estimada o su plazo son inválidos.' }),
+        ...(expenses.error ? { fixedExpenses: expenses.error } : {}),
       },
     };
   }
 
-  return { success: true, data: { monthlyIncome: incomeResult.data, debts } };
+  return {
+    success: true,
+    data: { incomeSources: incomes.items, debtGoal: debtGoal.data, fixedExpenses: expenses.items },
+  };
 }

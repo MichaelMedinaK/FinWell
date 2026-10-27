@@ -39,6 +39,7 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y, si toca
 - Páginas privadas (`src/app/(app)/`): llamar `requireCompleteUser()` en el layout **y** en cada página (Next los renderiza en paralelo). Server Actions: `requireUserId()` antes de tocar datos.
 - `requireCompleteUser()` exige fecha de nacimiento **y** onboarding (`onboardedAt`); si falta, redirige a `/completar-perfil` o `/bienvenida`. `/bienvenida` usa `requireUserWithProfile()` para no entrar en bucle.
 - Carga de deudas (`src/domain/financial-health.ts`): cuotas mensuales / ingreso. Umbrales: < 30 % saludable, < 50 % moderada, resto alta. Cambiar solo ahí.
+- Cuentas de dinero (`MoneyAccount`, no confundir con `Account` de Auth.js): cada una tiene moneda propia. El balance general solo cuenta cuentas en `APP_CURRENCY` y movimientos sin cuenta; las demás se muestran en su moneda. Un movimiento `DEBT_PAYMENT` actualiza la deuda vía `applyInstallmentPayment`.
 - Rutas públicas en `src/app/(auth)/`. Usuarios sin `birthDate` (Google) se redirigen a `/completar-perfil`.
 - No activar `allowDangerousEmailAccountLinking`: evita el secuestro de cuentas por correo.
 - Secretos (`AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `GMAIL_APP_PASSWORD`) solo en `.env.local`; nunca en `.env` ni en el código.
@@ -55,7 +56,7 @@ Antes de dar un cambio por terminado: `npm run typecheck`, `npm test` y, si toca
 - Errores: capturar solo errores de Prisma con `isPersistenceError` ([persistence-errors.ts](src/server/persistence-errors.ts)) y relanzar el resto.
 - Iconos de `lucide-react` no son serializables: los componentes de navegación cliente importan `NAV_ITEMS` directamente.
 - Diseño **mobile-first**: barra inferior en móvil, sidebar desde `md`. Reutilizar las clases `.card`, `.form-input`, `.btn-primary`… de [globals.css](src/app/globals.css).
-- **Tema claro/oscuro**: no se usan variantes `dark:`. [theme-palette.ts](src/lib/theme/theme-palette.ts) remapea la paleta de Tailwind con variables CSS (`slate` se invierte; en los acentos solo se invierten 50–200 y 700–800). Por eso: usar `bg-surface` (no `bg-white`) para tarjetas y paneles, y no poner `text-white` sobre fondos de acento 50–200 ni 700–800 (usar 500/600). `text-white` no cambia de color.
+- **Tema claro/oscuro**: no se usan variantes `dark:`. [theme-palette.ts](src/lib/theme/theme-palette.ts) remapea la paleta de Tailwind con variables CSS (`slate` se invierte, con tonos crema en claro y casi negros en oscuro; identidad verde `emerald` + azul `sky`; en los acentos solo se invierten 50–200 y 700–800). Por eso: usar `bg-surface` (no `bg-white`) para tarjetas y paneles, y no poner `text-white` sobre fondos de acento 50–200 ni 700–800 (usar 500/600). `text-white` no cambia de color.
 - Moneda y locale vía `.env` (`NEXT_PUBLIC_CURRENCY`, `NEXT_PUBLIC_LOCALE`), leídos en [config.ts](src/lib/config.ts); no hardcodear CLP.
 
 ## Calidad

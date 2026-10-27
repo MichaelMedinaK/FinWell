@@ -43,6 +43,13 @@ export function startOfMonthOffset(date: Date, monthOffset: number): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + monthOffset, 1));
 }
 
+// Si el mes destino es más corto (ej: 31 ene → feb) se usa su último día.
+export function addMonths(date: Date, months: number): Date {
+  const firstOfTargetMonth = startOfMonthOffset(date, months);
+  const lastDayOfTargetMonth = new Date(Date.UTC(firstOfTargetMonth.getUTCFullYear(), firstOfTargetMonth.getUTCMonth() + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(firstOfTargetMonth.getUTCFullYear(), firstOfTargetMonth.getUTCMonth(), Math.min(date.getUTCDate(), lastDayOfTargetMonth)));
+}
+
 export function fullYearsBetween(from: Date, to: Date): number {
   const years = to.getUTCFullYear() - from.getUTCFullYear();
   const hasReachedAnniversary =

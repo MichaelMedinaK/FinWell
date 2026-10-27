@@ -1,14 +1,14 @@
 import tailwindColors from 'tailwindcss/colors';
 
 type Shade = '50' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900' | '950';
-type PaletteName = 'slate' | 'emerald' | 'teal' | 'rose' | 'red' | 'amber' | 'orange';
+type PaletteName = 'slate' | 'emerald' | 'teal' | 'rose' | 'red' | 'amber' | 'orange' | 'sky';
 type ShadeMapping = Partial<Record<Shade, Shade>>;
 export type CssVariables = Record<string, string>;
 
 export const SURFACE_VARIABLE = '--surface';
 
 const NEUTRAL_PALETTE: PaletteName = 'slate';
-const ACCENT_PALETTES: readonly PaletteName[] = ['emerald', 'teal', 'rose', 'red', 'amber', 'orange'];
+const ACCENT_PALETTES: readonly PaletteName[] = ['emerald', 'teal', 'rose', 'red', 'amber', 'orange', 'sky'];
 
 // El neutro se invierte completo: así fondos, bordes y textos de los componentes funcionan en
 // ambos temas sin agregar variantes `dark:` en cada uno.
@@ -39,6 +39,24 @@ const ACCENT_DARK_MAPPING: ShadeMapping = {
 
 const DARK_SURFACE_SHADE: Shade = '900';
 
+// Tema claro crema: el blanco puro de Tailwind se confundía con las tarjetas y los fondos.
+const LIGHT_SURFACE_HEX = '#fffdf7';
+const LIGHT_NEUTRAL_HEX: Partial<Record<Shade, string>> = {
+  '50': '#f6efdc',
+  '100': '#efe6cf',
+  '200': '#e2d6b8',
+  '300': '#d1c3a0',
+};
+
+// Tema oscuro más negro que el slate de Tailwind (clave = tono del neutro tras la inversión).
+const DARK_SURFACE_HEX = '#0a0f14';
+const DARK_NEUTRAL_HEX: Partial<Record<Shade, string>> = {
+  '50': '#03060a',
+  '100': '#0a0f14',
+  '200': '#17202a',
+  '300': '#222d39',
+};
+
 export function hexToRgbChannels(hex: string): string {
   const digits = hex.replace('#', '');
   const value = digits.length === 3 ? [...digits].map((digit) => digit + digit).join('') : digits;
@@ -64,13 +82,16 @@ function themedPalettes(): Array<{ palette: PaletteName; mapping: ShadeMapping }
 }
 
 export function buildThemeVariables(): { light: CssVariables; dark: CssVariables } {
-  const light: CssVariables = { [SURFACE_VARIABLE]: hexToRgbChannels(tailwindColors.white) };
-  const dark: CssVariables = { [SURFACE_VARIABLE]: hexToRgbChannels(shadeHex(NEUTRAL_PALETTE, DARK_SURFACE_SHADE)) };
+  const light: CssVariables = { [SURFACE_VARIABLE]: hexToRgbChannels(LIGHT_SURFACE_HEX) };
+  const dark: CssVariables = { [SURFACE_VARIABLE]: hexToRgbChannels(DARK_SURFACE_HEX) };
 
   for (const { palette, mapping } of themedPalettes()) {
+    const isNeutral = palette === NEUTRAL_PALETTE;
     for (const [shade, darkShade] of Object.entries(mapping) as Array<[Shade, Shade]>) {
-      light[variableName(palette, shade)] = hexToRgbChannels(shadeHex(palette, shade));
-      dark[variableName(palette, shade)] = hexToRgbChannels(shadeHex(palette, darkShade));
+      const lightHex = (isNeutral && LIGHT_NEUTRAL_HEX[shade]) || shadeHex(palette, shade);
+      const darkHex = (isNeutral && DARK_NEUTRAL_HEX[shade]) || shadeHex(palette, darkShade);
+      light[variableName(palette, shade)] = hexToRgbChannels(lightHex);
+      dark[variableName(palette, shade)] = hexToRgbChannels(darkHex);
     }
   }
 

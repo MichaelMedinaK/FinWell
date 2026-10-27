@@ -1,7 +1,7 @@
 # Guía de uso · FinWell
 
 > Documento vivo: actualízalo cada vez que se agregue o cambie una funcionalidad.
-> Última actualización: 27-10-2026 · Versión 0.6.0
+> Última actualización: 27-10-2026 · Versión 0.7.0
 
 ## 1. Primeros pasos
 
@@ -21,14 +21,15 @@
 
 ### Bienvenida (primer ingreso)
 
-Al crear tu cuenta verás un asistente rápido de 4 pasos:
+Al crear tu cuenta verás un asistente rápido de 5 pasos:
 
-1. **Bienvenida**: un saludo y lo que FinWell hará por ti.
-2. **Ingreso mensual promedio**: opcional; si lo dejas vacío se guarda como "Prefiero no decirlo".
-3. **Tus deudas**: agrega hasta 10 deudas o tarjetas que ya conozcas (nombre, monto, cuotas, próximo pago e interés opcional). Si no tienes, continúa sin agregar.
-4. **Resumen**: revisa todo y pulsa **Ir a mi panel**.
+1. **Bienvenida**.
+2. **Tus ingresos**: agrega cada origen (sueldo, negocio, trabajos informales…) indicando si es **fijo** o **informal / variable** y su monto promedio mensual. FinWell suma el total.
+3. **Tus deudas**: monto aproximado total y en cuánto tiempo quieres salir de ellas (el detalle de cada deuda se carga después en **Deudas**).
+4. **Gastos fijos**: gastos mensuales aproximados que no son deudas (luz, agua, arriendo…).
+5. **Resumen**: revisa todo y pulsa **Ir a mi panel**.
 
-Puedes pulsar **Omitir por ahora** y cargar todo después desde las secciones normales. Si indicaste tu ingreso, el Resumen mostrará la tarjeta **Carga de deudas**: qué porcentaje de tu ingreso se va en cuotas (menos de 30 % saludable, 30–49 % moderada, 50 % o más alta).
+Puedes pulsar **Omitir por ahora**. Si indicaste ingresos, el Resumen mostrará la tarjeta **Carga de deudas** (menos de 30 % saludable, 30–49 % moderada, 50 % o más alta).
 
 ### Instalar como app en el celular o PC
 
@@ -56,25 +57,29 @@ Toca el botón de sol / luna / monitor (en la barra lateral en PC, arriba a la d
 
 ## 3. Resumen (Inicio)
 
-- **Balance actual**: total de entradas menos total de salidas registradas.
-- **Neto del mes**: entradas menos salidas del mes en curso.
-- **Entradas / salidas** de hoy y del mes.
-- **Pagos próximos**: deudas vencidas o que vencen en los próximos 5 días.
-- **Gráficos**: últimos 7 días y últimos 6 meses (verde = entradas, rojo = salidas). Deja el cursor sobre una barra para ver los montos.
+El panel principal permite registrar todo sin cambiar de pantalla:
+
+- **Registrar movimiento**: elige Entrada o Salida y su tipo. Salidas: *gasto diario*, *pago de una deuda agendada*, *gasto fijo* u *otro*. Entradas: *fijo*, *variable / informal* u *otro*. Opcionalmente indica la cuenta. Al pagar una deuda, FinWell descuenta el monto adeudado, baja una cuota y mueve el próximo vencimiento un mes.
+- **Mis cuentas**: crea cuentas (banco, Mercado Pago, efectivo, dólares físicos…) con su moneda y saldo actual. Los movimientos asociados a una cuenta actualizan su saldo. Eliminar una cuenta borra también sus movimientos.
+- **Balance actual**: saldos iniciales de tus cuentas en la moneda principal más entradas menos salidas. Las cuentas en otra moneda (ej. USD) se muestran solo en su propio saldo y no entran al balance.
+- **Neto del mes**, **entradas / salidas** de hoy y del mes.
+- **Pagos próximos** y **gráficos** de 7 días y 6 meses.
 
 ## 4. Movimientos
 
-Registra cada entrada (sueldo, ventas…) o salida (compras, cuentas…).
+Lista de los últimos movimientos con el mismo formulario de registro.
 
 | Campo | Obligatorio | Notas |
 |-------|:-----------:|-------|
-| Tipo | Sí | Entrada o Salida |
+| Tipo y subtipo | Sí | Ver sección Resumen |
+| Deuda | Solo en pago de deuda | La descripción es opcional en ese caso |
 | Monto | Sí | Mayor a 0 |
+| Cuenta | No | Define el saldo que cambia |
 | Descripción | Sí | Máx. 120 caracteres |
-| Categoría | No | Máx. 40 caracteres (ej. Comida, Transporte) |
+| Categoría | No | Máx. 40 caracteres |
 | Fecha | Sí | Por defecto, hoy |
 
-Para eliminar un movimiento usa el ícono de papelera y confirma. **La eliminación no se puede deshacer.**
+Para eliminar un movimiento usa la papelera. **No se puede deshacer** (el saldo de la cuenta se recalcula, pero una deuda ya pagada no se revierte).
 
 ## 5. Deudas y tarjetas de crédito
 
@@ -157,4 +162,5 @@ Si el servidor falla al iniciar sesión, la app muestra "No pudimos conectar con
 | 23-10-2026 | 0.3.0 | Asistente de bienvenida (ingreso mensual y deudas conocidas) y tarjeta "Carga de deudas" en el Resumen. |
 | 23-10-2026 | 0.4.0 | Tema claro, oscuro o según el sistema, con botón para cambiarlo. |
 | 23-10-2026 | 0.5.0 | Base de datos PostgreSQL (Docker en local, Supabase en producción) y despliegue en Vercel. |
+| 28-10-2026 | 0.7.0 | Onboarding con ingresos fijos/informales, meta de deudas y gastos fijos; tema verde/azul; registro rápido con tipos de movimiento, pago de deudas y cuentas de dinero. |
 | 27-10-2026 | 0.6.0 | Recuperación de clave por correo (Gmail) y mensajes de error de inicio de sesión que distinguen clave incorrecta de falla del servidor. |

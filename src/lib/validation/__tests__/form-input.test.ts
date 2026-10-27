@@ -45,10 +45,19 @@ describe('parseDebtInput', () => {
 
 describe('parseTransactionInput', () => {
   it('returns normalized data and converts empty category to null', () => {
-    const result = parseTransactionInput({ type: 'INCOME', amount: '1200.50', description: 'Sueldo', category: '', date: '2026-10-01' });
+    const result = parseTransactionInput({ type: 'INCOME', subtype: 'FIXED', amount: '1200.50', description: 'Sueldo', category: '', date: '2026-10-01' });
     expect(result).toEqual({
       success: true,
-      data: { type: 'INCOME', amount: 1200.5, description: 'Sueldo', category: null, date: new Date('2026-10-01T00:00:00.000Z') },
+      data: {
+        type: 'INCOME',
+        subtype: 'FIXED',
+        amount: 1200.5,
+        description: 'Sueldo',
+        category: null,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        accountId: null,
+        debtId: null,
+      },
     });
   });
 

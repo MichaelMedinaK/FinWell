@@ -1,13 +1,19 @@
 import { APP_CURRENCY, APP_LOCALE } from './config';
 
-const currencyFormatter = new Intl.NumberFormat(APP_LOCALE, { style: 'currency', currency: APP_CURRENCY });
 const percentFormatter = new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 2 });
 const fullDateFormatter = new Intl.DateTimeFormat(APP_LOCALE, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 const weekdayFormatter = new Intl.DateTimeFormat(APP_LOCALE, { weekday: 'short', timeZone: 'UTC' });
 const monthFormatter = new Intl.DateTimeFormat(APP_LOCALE, { month: 'short', timeZone: 'UTC' });
 
-export function formatCurrency(amount: number): string {
-  return currencyFormatter.format(amount);
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
+
+export function formatCurrency(amount: number, currency: string = APP_CURRENCY): string {
+  let formatter = currencyFormatters.get(currency);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(APP_LOCALE, { style: 'currency', currency });
+    currencyFormatters.set(currency, formatter);
+  }
+  return formatter.format(amount);
 }
 
 export function formatPercent(value: number): string {

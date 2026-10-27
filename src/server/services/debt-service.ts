@@ -1,6 +1,6 @@
 ﻿import { prisma } from '@/lib/prisma';
 import { addDays, today } from '@/domain/dates';
-import { ALERT_WINDOW_DAYS, selectDebtsNeedingAttention, withDueInfo } from '@/domain/debt';
+import { ALERT_WINDOW_DAYS, estimateInstallmentAmount, selectDebtsNeedingAttention, withDueInfo } from '@/domain/debt';
 import type { DebtInput } from '@/lib/validation/debt-input';
 
 export async function listDebtsWithDueInfo(userId: string, referenceDay: Date = today()) {
@@ -14,6 +14,11 @@ export async function listDebtAlerts(userId: string, referenceDay: Date = today(
     orderBy: { dueDate: 'asc' },
   });
   return selectDebtsNeedingAttention(debts, referenceDay);
+}
+
+export async function listDebtPaymentOptions(userId: string) {
+  const debts = await prisma.debt.findMany({ where: { userId }, orderBy: { dueDate: 'asc' } });
+  return debts.map((debt) => ({ id: debt.id, name: debt.name, installmentAmount: estimateInstallmentAmount(debt) }));
 }
 
 export function listInstallmentSources(userId: string) {

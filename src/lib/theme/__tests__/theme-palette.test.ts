@@ -13,15 +13,16 @@ describe('hexToRgbChannels', () => {
 describe('buildThemeVariables', () => {
   const { light, dark } = buildThemeVariables();
 
-  it('en claro usa los colores originales de Tailwind', () => {
+  it('en claro usa un neutro crema y una superficie cálida', () => {
     expect(light['--slate-900']).toBe(hexToRgbChannels(tailwindColors.slate[900]));
-    expect(light[SURFACE_VARIABLE]).toBe('255 255 255');
+    expect(light['--slate-50']).toBe(hexToRgbChannels('#f6efdc'));
+    expect(light[SURFACE_VARIABLE]).toBe(hexToRgbChannels('#fffdf7'));
   });
 
-  it('en oscuro invierte el neutro y oscurece la superficie', () => {
+  it('en oscuro invierte el neutro con fondos casi negros', () => {
     expect(dark['--slate-900']).toBe(hexToRgbChannels(tailwindColors.slate[50]));
-    expect(dark['--slate-50']).toBe(hexToRgbChannels(tailwindColors.slate[950]));
-    expect(dark[SURFACE_VARIABLE]).toBe(hexToRgbChannels(tailwindColors.slate[900]));
+    expect(dark['--slate-50']).toBe(hexToRgbChannels('#03060a'));
+    expect(dark[SURFACE_VARIABLE]).toBe(hexToRgbChannels('#0a0f14'));
   });
 
   it('en oscuro invierte tintes y textos de acento pero no los tonos sólidos', () => {

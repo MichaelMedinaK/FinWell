@@ -1,14 +1,21 @@
+import { totalMonthlyIncomeOrNull } from '@/domain/income';
 import { prisma } from '@/lib/prisma';
 import type { OnboardingInput } from '@/lib/validation/onboarding-input';
 
-// Una sola transacción: si falla alguna deuda, el usuario no queda marcado como onboarded a medias.
+// Una sola transacción: si algo falla, el usuario no queda marcado como onboarded a medias.
 export function completeOnboarding(userId: string, input: OnboardingInput) {
   return prisma.$transaction([
     prisma.user.update({
       where: { id: userId },
-      data: { monthlyIncome: input.monthlyIncome, onboardedAt: new Date() },
+      data: {
+        monthlyIncome: totalMonthlyIncomeOrNull(input.incomeSources),
+        debtEstimatedTotal: input.debtGoal?.estimatedTotal ?? null,
+        debtPayoffMonths: input.debtGoal?.payoffMonths ?? null,
+        onboardedAt: new Date(),
+      },
     }),
-    prisma.debt.createMany({ data: input.debts.map((debt) => ({ ...debt, userId })) }),
+    prisma.incomeSource.createMany({ data: input.incomeSources.map((source) => ({ ...source, userId })) }),
+    prisma.fixedExpense.createMany({ data: input.fixedExpenses.map((expense) => ({ ...expense, userId })) }),
   ]);
 }
 

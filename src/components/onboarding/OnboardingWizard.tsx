@@ -1,22 +1,24 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { DebtInput } from '@/lib/validation/debt-input';
-import { parseMonthlyIncome, type DebtDraft } from '@/lib/validation/onboarding-input';
-import { DebtsStep } from './DebtsStep';
+import type { IncomeSourceInput } from '@/lib/validation/income-source-input';
+import type { IncomeSourceDraft } from '@/lib/validation/onboarding-input';
+import { DebtsStep, type DebtGoalTexts } from './DebtsStep';
+import { ExpensesStep, type FixedExpenseTexts } from './ExpensesStep';
 import { IncomeStep } from './IncomeStep';
-import type { OnboardingDebt } from './onboarding-debt';
+import type { OnboardingIncomeSource } from './onboarding-income';
 import { StepProgress } from './StepProgress';
 import { SummaryStep } from './SummaryStep';
 import { WelcomeStep } from './WelcomeStep';
 
-const STEPS = ['welcome', 'income', 'debts', 'summary'] as const;
+const STEPS = ['welcome', 'income', 'debts', 'expenses', 'summary'] as const;
 
 export function OnboardingWizard({ userName }: { userName: string }) {
   const [stepIndex, setStepIndex] = useState(0);
-  const [incomeText, setIncomeText] = useState('');
-  const [debts, setDebts] = useState<OnboardingDebt[]>([]);
-  const nextDebtKey = useRef(0);
+  const [incomeSources, setIncomeSources] = useState<OnboardingIncomeSource[]>([]);
+  const [debtGoalTexts, setDebtGoalTexts] = useState<DebtGoalTexts>({ estimatedTotal: '', payoffMonths: '' });
+  const [expenseTexts, setExpenseTexts] = useState<FixedExpenseTexts>({});
+  const nextItemKey = useRef(0);
 
   const currentStep = STEPS[stepIndex];
 
@@ -26,16 +28,14 @@ export function OnboardingWizard({ userName }: { userName: string }) {
   const goNext = () => setStepIndex((index) => Math.min(index + 1, STEPS.length - 1));
   const goBack = () => setStepIndex((index) => Math.max(index - 1, 0));
 
-  function addDebt(draft: DebtDraft, input: DebtInput) {
-    const key = String(nextDebtKey.current++);
-    setDebts((current) => [...current, { key, draft, input }]);
+  function addIncomeSource(draft: IncomeSourceDraft, input: IncomeSourceInput) {
+    const key = String(nextItemKey.current++);
+    setIncomeSources((current) => [...current, { key, draft, input }]);
   }
 
-  function removeDebt(key: string) {
-    setDebts((current) => current.filter((debt) => debt.key !== key));
+  function removeIncomeSource(key: string) {
+    setIncomeSources((current) => current.filter((source) => source.key !== key));
   }
-
-  const incomeResult = parseMonthlyIncome(incomeText);
 
   return (
     <div className="space-y-6">
@@ -44,18 +44,22 @@ export function OnboardingWizard({ userName }: { userName: string }) {
       <div key={currentStep} className="animate-fade-in">
         {currentStep === 'welcome' && <WelcomeStep userName={userName} onStart={goNext} />}
         {currentStep === 'income' && (
-          <IncomeStep incomeText={incomeText} onIncomeTextChange={setIncomeText} onBack={goBack} onNext={goNext} />
+          <IncomeStep
+            incomeSources={incomeSources}
+            onAddIncomeSource={addIncomeSource}
+            onRemoveIncomeSource={removeIncomeSource}
+            onBack={goBack}
+            onNext={goNext}
+          />
         )}
         {currentStep === 'debts' && (
-          <DebtsStep debts={debts} onAddDebt={addDebt} onRemoveDebt={removeDebt} onBack={goBack} onNext={goNext} />
+          <DebtsStep texts={debtGoalTexts} onTextsChange={setDebtGoalTexts} onBack={goBack} onNext={goNext} />
+        )}
+        {currentStep === 'expenses' && (
+          <ExpensesStep texts={expenseTexts} onTextsChange={setExpenseTexts} onBack={goBack} onNext={goNext} />
         )}
         {currentStep === 'summary' && (
-          <SummaryStep
-            incomeText={incomeText}
-            monthlyIncome={incomeResult.success ? incomeResult.data : null}
-            debts={debts}
-            onBack={goBack}
-          />
+          <SummaryStep incomeSources={incomeSources} debtGoalTexts={debtGoalTexts} expenseTexts={expenseTexts} onBack={goBack} />
         )}
       </div>
     </div>

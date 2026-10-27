@@ -1,32 +1,45 @@
 import { ArrowLeft, Loader2, PartyPopper, Rocket } from 'lucide-react';
 import { useActionState } from 'react';
-import { sumOutstandingDebt } from '@/domain/debt';
-import { sumMonthlyInstallments } from '@/domain/financial-health';
+import { estimateMonthlyMargin, monthlyPayoffTarget } from '@/domain/debt-payoff';
+import { sumFixedExpenses } from '@/domain/fixed-expense';
+import { sumMonthlyIncome, totalMonthlyIncomeOrNull } from '@/domain/income';
 import { INITIAL_FORM_STATE } from '@/lib/form-state';
 import { formatCurrency } from '@/lib/format';
+import { parseDebtGoalInput } from '@/lib/validation/debt-goal-input';
+import { parseFixedExpenses } from '@/lib/validation/fixed-expense-input';
 import { completeOnboardingAction } from '@/server/actions/onboarding-actions';
-import { DebtLoadIndicator } from '@/components/dashboard/DebtLoadIndicator';
 import { FormStatusMessage } from '@/components/ui/FormStatusMessage';
-import type { OnboardingDebt } from './onboarding-debt';
+import type { DebtGoalTexts } from './DebtsStep';
+import type { FixedExpenseTexts } from './ExpensesStep';
+import type { OnboardingIncomeSource } from './onboarding-income';
 import { StepHeading } from './StepHeading';
 
 interface SummaryStepProps {
-  incomeText: string;
-  monthlyIncome: number | null;
-  debts: OnboardingDebt[];
+  incomeSources: OnboardingIncomeSource[];
+  debtGoalTexts: DebtGoalTexts;
+  expenseTexts: FixedExpenseTexts;
   onBack: () => void;
 }
 
-export function SummaryStep({ incomeText, monthlyIncome, debts, onBack }: SummaryStepProps) {
+export function SummaryStep({ incomeSources, debtGoalTexts, expenseTexts, onBack }: SummaryStepProps) {
   const [state, formAction, isPending] = useActionState(completeOnboardingAction, INITIAL_FORM_STATE);
-  const debtInputs = debts.map((debt) => debt.input);
-  const monthlyInstallments = sumMonthlyInstallments(debtInputs);
-  const serializedDebts = JSON.stringify(debts.map((debt) => debt.draft));
+  const incomeInputs = incomeSources.map((source) => source.input);
+  const monthlyIncome = totalMonthlyIncomeOrNull(incomeInputs);
+
+  const debtGoalResult = parseDebtGoalInput(debtGoalTexts);
+  const debtGoal = debtGoalResult.success ? debtGoalResult.data : null;
+  const monthlyDebtPayment = debtGoal ? monthlyPayoffTarget(debtGoal.estimatedTotal, debtGoal.payoffMonths) : 0;
+
+  const expensesResult = parseFixedExpenses(expenseTexts);
+  const fixedExpensesTotal = expensesResult.success ? sumFixedExpenses(expensesResult.data) : 0;
+  const monthlyMargin = estimateMonthlyMargin(monthlyIncome, fixedExpensesTotal, monthlyDebtPayment);
 
   return (
     <form action={formAction} className="space-y-5">
-      <input type="hidden" name="monthlyIncome" value={incomeText} />
-      <input type="hidden" name="debts" value={serializedDebts} />
+      <input type="hidden" name="incomeSources" value={JSON.stringify(incomeSources.map((source) => source.draft))} />
+      <input type="hidden" name="debtEstimatedTotal" value={debtGoalTexts.estimatedTotal} />
+      <input type="hidden" name="debtPayoffMonths" value={debtGoalTexts.payoffMonths} />
+      <input type="hidden" name="fixedExpenses" value={JSON.stringify(expenseTexts)} />
 
       <StepHeading
         icon={<PartyPopper className="h-6 w-6" aria-hidden />}
@@ -36,15 +49,12 @@ export function SummaryStep({ incomeText, monthlyIncome, debts, onBack }: Summar
 
       <dl className="grid grid-cols-2 gap-3">
         <SummaryItem label="Ingreso mensual" value={monthlyIncome === null ? 'No indicado' : formatCurrency(monthlyIncome)} />
-        <SummaryItem label="Deudas registradas" value={String(debts.length)} />
-        <SummaryItem label="Total adeudado" value={formatCurrency(sumOutstandingDebt(debtInputs))} />
-        <SummaryItem label="Cuotas al mes (aprox.)" value={formatCurrency(monthlyInstallments)} />
+        <SummaryItem label="Fijos / informales" value={`${formatCurrency(sumMonthlyIncome(incomeInputs, 'FIXED'))} / ${formatCurrency(sumMonthlyIncome(incomeInputs, 'VARIABLE'))}`} />
+        <SummaryItem label="Deuda aproximada" value={debtGoal ? formatCurrency(debtGoal.estimatedTotal) : 'Sin deudas'} />
+        <SummaryItem label="Pago mensual para salir" value={debtGoal ? `${formatCurrency(monthlyDebtPayment)} (${debtGoal.payoffMonths} meses)` : '—'} />
+        <SummaryItem label="Gastos fijos al mes" value={formatCurrency(fixedExpensesTotal)} />
+        <SummaryItem label="Te quedaría al mes" value={monthlyMargin === null ? 'Sin ingreso indicado' : formatCurrency(monthlyMargin)} />
       </dl>
-
-      {monthlyIncome !== null && debts.length > 0 && (
-        <DebtLoadIndicator monthlyIncome={monthlyIncome} monthlyInstallments={monthlyInstallments} className="shadow-none" />
-      )}
-
       <p className="rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 p-4 text-center text-sm font-medium text-emerald-800">
         “No se trata de cuánto ganas, sino de cómo lo organizas.”
       </p>

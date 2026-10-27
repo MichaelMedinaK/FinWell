@@ -4,19 +4,25 @@ import { TransactionForm } from '@/components/transactions/TransactionForm';
 import { TransactionList } from '@/components/transactions/TransactionList';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { requireCompleteUser } from '@/server/auth/session';
+import { listDebtPaymentOptions } from '@/server/services/debt-service';
+import { listAccountsWithBalance } from '@/server/services/money-account-service';
 import { listRecentTransactions } from '@/server/services/transaction-service';
 
 export const metadata: Metadata = { title: 'Movimientos' };
 
 export default async function TransactionsPage() {
   const user = await requireCompleteUser();
-  const transactions = await listRecentTransactions(user.id);
+  const [transactions, accounts, debts] = await Promise.all([
+    listRecentTransactions(user.id),
+    listAccountsWithBalance(user.id),
+    listDebtPaymentOptions(user.id),
+  ]);
 
   return (
     <div className="space-y-6">
       <PageHeader title="Movimientos" description="Registra tus entradas y salidas de dinero." />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
-        <TransactionForm defaultDate={toDateKey(today())} />
+        <TransactionForm defaultDate={toDateKey(today())} accounts={accounts} debts={debts} />
         <section className="space-y-3">
           <h2 className="font-semibold text-slate-900">Últimos movimientos</h2>
           <TransactionList transactions={transactions} />

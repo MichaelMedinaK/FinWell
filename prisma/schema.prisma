@@ -24,8 +24,11 @@ model User {
   image         String?
   passwordHash  String?
   birthDate     DateTime?
-  // Ingreso promedio declarado en el formulario de bienvenida; base para medir la carga de deudas.
+  // Total mensual (fijo + variable) calculado a partir de las fuentes de ingreso; base para medir la carga de deudas.
   monthlyIncome Float?
+  // Estimación gruesa del formulario de bienvenida; el detalle real vive en Debt.
+  debtEstimatedTotal Float?
+  debtPayoffMonths   Int?
   // Nulo mientras el usuario no termine (u omita) el formulario de bienvenida.
   onboardedAt   DateTime?
   createdAt     DateTime      @default(now())
@@ -33,7 +36,34 @@ model User {
   accounts      Account[]
   debts         Debt[]
   transactions  Transaction[]
+  incomeSources IncomeSource[]
+  moneyAccounts MoneyAccount[]
+  fixedExpenses FixedExpense[]
   resetTokens   PasswordResetToken[]
+}
+
+model FixedExpense {
+  id            String   @id @default(cuid())
+  userId        String
+  category      String // HOUSING | ELECTRICITY | WATER | GAS | INTERNET_PHONE | TRANSPORT | FOOD | OTHER
+  monthlyAmount Float
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model IncomeSource {
+  id            String   @id @default(cuid())
+  userId        String
+  origin        String // EMPLOYMENT | BUSINESS | FREELANCE | RENTAL | BENEFIT | OTHER
+  name          String
+  kind          String // FIXED | VARIABLE
+  monthlyAmount Float
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // Solo se guarda el hash del token: si la base se filtra, los enlaces enviados por correo no sirven.
@@ -79,8 +109,23 @@ model Debt {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments              Transaction[]
 
   @@index([userId, dueDate])
+}
+
+model MoneyAccount {
+  id             String        @id @default(cuid())
+  userId         String
+  name           String
+  kind           String // BANK | WALLET | CASH | OTHER
+  currency       String // ISO 4217, ej: CLP | USD
+  initialBalance Float         @default(0)
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+
+  @@index([userId])
 }
 
 model Transaction {
@@ -90,9 +135,14 @@ model Transaction {
   amount      Float
   description String
   category    String?
+  subtype     String? // DAILY | DEBT_PAYMENT | FIXED | OTHER (salida); FIXED | VARIABLE | OTHER (entrada)
+  accountId   String?
+  debtId      String?
   date        DateTime
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account     MoneyAccount? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  debt        Debt?    @relation(fields: [debtId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
 }
