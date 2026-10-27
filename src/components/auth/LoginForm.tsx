@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useActionState } from 'react';
 import { INITIAL_FORM_STATE } from '@/lib/form-state';
 import { loginAction } from '@/server/actions/auth-actions';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { FormField } from '@/components/ui/FormField';
 import { FormStatusMessage } from '@/components/ui/FormStatusMessage';
 import { useResettableFormSubmit } from '@/components/ui/useResettableFormSubmit';
@@ -21,7 +22,7 @@ export function LoginForm() {
       </FormField>
 
       <FormField label="Clave" htmlFor="password" error={errors.password}>
-        <input id="password" name="password" type="password" autoComplete="current-password" className="form-input" required aria-invalid={Boolean(errors.password)} />
+        <PasswordInput id="password" name="password" autoComplete="current-password" required aria-invalid={Boolean(errors.password)} />
       </FormField>
 
       <div className="text-right">

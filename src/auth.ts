@@ -6,6 +6,7 @@ import Google from 'next-auth/providers/google';
 import { prisma } from '@/lib/prisma';
 import { parseLoginInput } from '@/lib/validation/user-input';
 import { verifyPassword } from '@/server/auth/password';
+import { EmailNotFoundError, GoogleAccountError, WrongPasswordError } from '@/server/auth/sign-in-error';
 import { findUserByEmail } from '@/server/services/user-service';
 
 // Google es opcional: sin credenciales en .env.local la app funciona solo con correo y clave.
@@ -18,10 +19,11 @@ const credentialsProvider = Credentials({
     if (!login.success) return null;
 
     const user = await findUserByEmail(login.data.email);
-    if (!user?.passwordHash) return null;
+    if (!user) throw new EmailNotFoundError();
+    if (!user.passwordHash) throw new GoogleAccountError();
 
-    const isValidPassword = await verifyPassword(login.data.password, user.passwordHash);
-    return isValidPassword ? { id: user.id, name: user.name, email: user.email, image: user.image } : null;
+    if (!(await verifyPassword(login.data.password, user.passwordHash))) throw new WrongPasswordError();
+    return { id: user.id, name: user.name, email: user.email, image: user.image };
   },
 });
 

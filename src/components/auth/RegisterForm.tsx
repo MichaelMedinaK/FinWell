@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { INITIAL_FORM_STATE } from '@/lib/form-state';
 import { PASSWORD_MIN_LENGTH } from '@/lib/validation/user-input';
 import { registerAction } from '@/server/actions/auth-actions';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { FormField } from '@/components/ui/FormField';
 import { FormStatusMessage } from '@/components/ui/FormStatusMessage';
 import { useResettableFormSubmit } from '@/components/ui/useResettableFormSubmit';
@@ -25,7 +26,7 @@ export function RegisterForm({ maxBirthDate }: { maxBirthDate: string }) {
       </FormField>
 
       <FormField label="Clave" htmlFor="password" error={errors.password} hint={`Mínimo ${PASSWORD_MIN_LENGTH} caracteres.`}>
-        <input id="password" name="password" type="password" autoComplete="new-password" minLength={PASSWORD_MIN_LENGTH} className="form-input" required aria-invalid={Boolean(errors.password)} />
+        <PasswordInput id="password" name="password" autoComplete="new-password" minLength={PASSWORD_MIN_LENGTH} required aria-invalid={Boolean(errors.password)} />
       </FormField>
 
       <FormField label="Fecha de nacimiento" htmlFor="birthDate" error={errors.birthDate}>

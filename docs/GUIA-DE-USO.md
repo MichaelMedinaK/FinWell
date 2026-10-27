@@ -138,7 +138,7 @@ Reinicia `npm run dev` después de cambiarlas. Sin las variables de Gmail, en de
 2. Recibirás un enlace válido por 60 minutos y de un solo uso (siempre se muestra el mismo aviso, exista o no el correo).
 3. Elige la clave nueva; luego inicia sesión.
 
-Si el servidor falla al iniciar sesión, la app muestra "No pudimos conectar con el servidor" en vez de "Correo o clave incorrectos".
+Si el servidor falla al iniciar sesión, la app muestra "No pudimos conectar con el servidor". Los errores de ingreso son explícitos: "No existe una cuenta con este correo" (bajo Correo), "La clave es incorrecta" (bajo Clave) o "Esta cuenta se creó con Google" si nunca definió una clave. En los campos de clave, el ojo permite ver lo que escribes.
 
 ## 8. Limitaciones conocidas y próximas mejoras
 

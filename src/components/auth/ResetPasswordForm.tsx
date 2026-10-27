@@ -4,6 +4,7 @@ import { KeyRound, Loader2 } from 'lucide-react';
 import { useActionState } from 'react';
 import { INITIAL_FORM_STATE } from '@/lib/form-state';
 import { resetPasswordAction } from '@/server/actions/password-reset-actions';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { FormField } from '@/components/ui/FormField';
 import { FormStatusMessage } from '@/components/ui/FormStatusMessage';
 import { useResettableFormSubmit } from '@/components/ui/useResettableFormSubmit';
@@ -18,11 +19,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
       <input type="hidden" name="token" value={token} />
 
       <FormField label="Clave nueva" htmlFor="password" error={errors.password}>
-        <input id="password" name="password" type="password" autoComplete="new-password" className="form-input" required aria-invalid={Boolean(errors.password)} />
+        <PasswordInput id="password" name="password" autoComplete="new-password" required aria-invalid={Boolean(errors.password)} />
       </FormField>
 
       <FormField label="Repite la clave" htmlFor="confirmPassword" error={errors.confirmPassword}>
-        <input id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password" className="form-input" required aria-invalid={Boolean(errors.confirmPassword)} />
+        <PasswordInput id="confirmPassword" name="confirmPassword" autoComplete="new-password" required aria-invalid={Boolean(errors.confirmPassword)} />
       </FormField>
 
       <FormStatusMessage state={state} />

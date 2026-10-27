@@ -8,12 +8,20 @@ import type { FormState } from '@/lib/form-state';
 import { parseLoginInput, parseProfileInput, parseRegistrationInput } from '@/lib/validation/user-input';
 import { hashPassword } from '@/server/auth/password';
 import { LOGIN_PATH, requireUserId } from '@/server/auth/session';
-import { classifySignInError } from '@/server/auth/sign-in-error';
+import { classifySignInError, type SignInFailure } from '@/server/auth/sign-in-error';
 import { isPersistenceError, isUniqueConstraintError, PERSISTENCE_ERROR_MESSAGE } from '@/server/persistence-errors';
 import { createPasswordUser, findUserByEmail, updateBirthDate } from '@/server/services/user-service';
 
 const HOME_PATH = '/';
 const INVALID_CREDENTIALS_MESSAGE = 'Correo o clave incorrectos.';
+const SIGN_IN_FAILURE_STATES: Partial<Record<SignInFailure, FormState>> = {
+  EMAIL_NOT_FOUND: { status: 'error', errors: { email: 'No existe una cuenta con este correo. Regístrate primero.' } },
+  WRONG_PASSWORD: { status: 'error', errors: { password: 'La clave es incorrecta. Revísala o recupérala.' } },
+  GOOGLE_ACCOUNT: {
+    status: 'error',
+    errors: { email: 'Esta cuenta se creó con Google. Usa "Continuar con Google" o recupera una clave.' },
+  },
+};
 const SERVICE_UNAVAILABLE_MESSAGE = 'No pudimos conectar con el servidor. Intenta nuevamente en unos minutos.';
 const EMAIL_TAKEN_ERROR = 'Este correo ya está registrado. Inicia sesión.';
 
@@ -26,7 +34,10 @@ async function signInWithPassword(email: string, password: string): Promise<Form
     await signIn('credentials', { email, password, redirectTo: HOME_PATH });
   } catch (error) {
     if (error instanceof AuthError) {
-      if (classifySignInError(error) === 'INVALID_CREDENTIALS') {
+      const failure = classifySignInError(error);
+      const failureState = SIGN_IN_FAILURE_STATES[failure];
+      if (failureState) return failureState;
+      if (failure === 'INVALID_CREDENTIALS') {
         return { status: 'error', message: INVALID_CREDENTIALS_MESSAGE };
       }
       console.error('[FinWell] Falla interna al iniciar sesión:', error.cause ?? error);
